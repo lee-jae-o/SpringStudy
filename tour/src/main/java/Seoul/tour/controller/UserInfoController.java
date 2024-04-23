@@ -9,13 +9,11 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.ModelMap;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.ResponseBody;
+import org.springframework.web.bind.annotation.*;
 
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpSession;
+
 import java.util.Optional;
 
 @Slf4j
@@ -274,7 +272,6 @@ public class UserInfoController {
         log.info("email : " + email);
 
 
-
         UserInfoDTO pDTO = new UserInfoDTO();
         pDTO.setUserName(userName);
         pDTO.setEmail(EncryptUtil.encAES128CBC(email));
@@ -308,10 +305,40 @@ public class UserInfoController {
 
     }
 
+//    @PostMapping(value = "searchPasswordProc")
+//    public String searchPasswordProc(HttpServletRequest request, ModelMap model, HttpSession session) throws Exception {
+//        log.info(this.getClass().getName() + ".user/searchPasswordProc Start!");
+//
+//
+//        String userId = CmmUtil.nvl(request.getParameter("userId")); // 아이디
+//        String userName = CmmUtil.nvl(request.getParameter("userName")); // 이름
+//        String email = CmmUtil.nvl(request.getParameter("email")); // 이메일
+//
+//        log.info("userId : " + userId);
+//        log.info("userName : " + userName);
+//        log.info("email : " + email);
+//
+//
+//        UserInfoDTO pDTO = new UserInfoDTO();
+//        pDTO.setUserId(userId);
+//        pDTO.setUserName(userName);
+//        pDTO.setEmail(EncryptUtil.encAES128CBC(email));
+//
+//        UserInfoDTO rDTO = Optional.ofNullable(userInfoService.searchUserIdOrPasswordProc(pDTO)).orElseGet(UserInfoDTO::new);
+//
+//        model.addAttribute("rDTO", rDTO);
+//
+//        session.setAttribute("NEW_PASSWORD", userId);
+//
+//        log.info(this.getClass().getName() + ".user/searchPasswordProc End!");
+//
+//        return "user/newPassword";
+//
+//    }
+
     @PostMapping(value = "searchPasswordProc")
     public String searchPasswordProc(HttpServletRequest request, ModelMap model, HttpSession session) throws Exception {
         log.info(this.getClass().getName() + ".user/searchPasswordProc Start!");
-
 
         String userId = CmmUtil.nvl(request.getParameter("userId")); // 아이디
         String userName = CmmUtil.nvl(request.getParameter("userName")); // 이름
@@ -321,13 +348,16 @@ public class UserInfoController {
         log.info("userName : " + userName);
         log.info("email : " + email);
 
-
         UserInfoDTO pDTO = new UserInfoDTO();
         pDTO.setUserId(userId);
         pDTO.setUserName(userName);
         pDTO.setEmail(EncryptUtil.encAES128CBC(email));
 
         UserInfoDTO rDTO = Optional.ofNullable(userInfoService.searchUserIdOrPasswordProc(pDTO)).orElseGet(UserInfoDTO::new);
+
+        if (rDTO.getUserId() == null) { // 아이디가 존재하지 않는 경우
+            return "redirect:/user/wrongPassword"; // /user/wrongPassword.html 페이지로 리다이렉트
+        }
 
         model.addAttribute("rDTO", rDTO);
 
@@ -336,8 +366,11 @@ public class UserInfoController {
         log.info(this.getClass().getName() + ".user/searchPasswordProc End!");
 
         return "user/newPassword";
-
     }
+
+
+
+
 
     @PostMapping(value = "newPasswordProc")
     public String newPasswordProc(HttpServletRequest request, ModelMap model, HttpSession session) throws Exception {
@@ -378,4 +411,17 @@ public class UserInfoController {
         return "user/newPasswordResult";
 
     }
+
+    @GetMapping(value = "wrongPassword")
+    public String wrongPassword() {
+        log.info(this.getClass().getName() + ".user/userRegForm");
+
+        return "user/wrongPassword";
+    }
+
+
+
+
+
 }
+
